@@ -12,6 +12,68 @@ module "vpc" {
   environment = var.environment
 }
 
+module "iam" {
+  source = "./modules/iam"
+}
+
+resource "aws_instance" "example" {
+  ami                    = "ami-12345678"
+  instance_type          = "t2.micro"
+  iam_instance_profile   = module.iam.ec2_ssm_instance_profile
+
+  tags = {
+    Name = "example-instance"
+  }
+}
+
+module "nat" {
+  source          = "./modules/nat"
+  public_subnet_id = element(module.vpc.public_subnet_ids, 0)
+  private_subnet_ids = module.vpc.private_subnet_ids
+  vpc_id            = module.vpc.vpc_id
+}
+
+resource "aws_ecs_task_definition" "example" {
+  family                   = "example"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+
+  container_definitions = jsonencode([
+    {
+      name  = "example"
+      image = "amazon/amazon-ecs-sample"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 80
+          hostPort      = 80
+        }
+      ]
+    }
+  ])
+
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn      = aws_iam_role.ecs_task_execution_role.arn
+}
+
+resource "aws_lambda_function" "example" {
+  function_name = "example_lambda"
+  role          = aws_iam_role.lambda_execution_role.arn
+  handler       = "index.handler"
+  runtime       = "nodejs14.x"
+
+  vpc_config {
+    subnet_ids         = module.vpc.private_subnet_ids
+    security_group_ids = [aws_security_group.lambda.id]
+  }
+}
+
+output "api_gateway_url" {
+  value = aws_api_gateway_deployment.example_deployment.invoke_url
+}
+
 module "security_groups" {
   source = "./modules/security_groups"
   environment = var.environment
