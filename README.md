@@ -1,47 +1,5 @@
 # Proyecto Terraform para AWS
 
-## Requisitos
-
-- Terraform v0.12+
-- AWS CLI configurado
-
-## Configuración
-
-### 1. Configurar Credenciales de AWS
-
-Edita el archivo `~/.aws/credentials`:
-
-```plaintext
-[default]
-aws_access_key_id = YOUR_ACCESS_KEY_ID
-aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
-
-[development]
-aws_access_key_id = YOUR_DEV_ACCESS_KEY_ID
-aws_secret_access_key = YOUR_DEV_SECRET_ACCESS_KEY
-
-[production]
-aws_access_key_id = YOUR_PROD_ACCESS_KEY_ID
-aws_secret_access_key = YOUR_PROD_SECRET_ACCESS_KEY
-```
-
-
-
-Edita el archivo `~/.aws/config`:
-
-```plaintext
-[default]
-region = us-east-1
-output = json
-
-[profile development]
-region = us-east-1
-output = json
-
-[profile production]
-region = us-west-2
-output = json
-```
 # Diagrama de Arquitectura
  <img src="./aws-multi-region-infra/diagrams/aws_cloud_architecture.png" alt="Diagrama AWS" width="600"/>
 
